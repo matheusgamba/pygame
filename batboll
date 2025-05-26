@@ -1,0 +1,108 @@
+import pygame
+import random
+
+# 1. Inicialização do Pygame
+pygame.init()
+
+# 2. Configurações da Tela
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+CAPTION = "Meu Jogo Simples"
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption(CAPTION)
+
+# 3. Cores
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
+
+# 4. Configurações do Jogador
+player_size = 50
+player_x = (SCREEN_WIDTH - player_size) // 2
+player_y = SCREEN_HEIGHT - player_size - 10
+player_speed = 5
+
+# 5. Configurações da Moeda
+coin_size = 30
+coin_x = random.randint(0, SCREEN_WIDTH - coin_size)
+coin_y = random.randint(0, SCREEN_HEIGHT // 2)
+coin_color = (255, 200, 0) # Amarelo para a moeda
+
+# 6. Configurações do Obstáculo
+obstacle_size = 70
+obstacle_x = random.randint(0, SCREEN_WIDTH - obstacle_size)
+obstacle_y = random.randint(0, SCREEN_HEIGHT // 2)
+obstacle_speed = 3 # Velocidade de queda do obstáculo
+
+# 7. Placar
+score = 0
+font = pygame.font.Font(None, 50) # Fonte padrão, tamanho 50
+
+# 8. Relógio para controlar o FPS
+clock = pygame.time.Clock()
+FPS = 60
+
+# 9. Loop Principal do Jogo
+running = True
+while running:
+    # 9.1. Lidar com Eventos
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # 9.2. Lidar com Entrada do Teclado (Movimento do Jogador)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_size:
+        player_x += player_speed
+
+    # 9.3. Atualizar a Posição dos Itens (Moeda e Obstáculo)
+    obstacle_y += obstacle_speed
+    if obstacle_y > SCREEN_HEIGHT: # Se o obstáculo sair da tela, reseta
+        obstacle_x = random.randint(0, SCREEN_WIDTH - obstacle_size)
+        obstacle_y = random.randint(-100, -50) # Reinicia um pouco acima da tela
+
+    # 9.4. Detecção de Colisões
+    player_rect = pygame.Rect(player_x, player_y, player_size, player_size)
+    coin_rect = pygame.Rect(coin_x, coin_y, coin_size, coin_size)
+    obstacle_rect = pygame.Rect(obstacle_x, obstacle_y, obstacle_size, obstacle_size)
+
+    # Colisão com a moeda
+    if player_rect.colliderect(coin_rect):
+        score += 1
+        coin_x = random.randint(0, SCREEN_WIDTH - coin_size)
+        coin_y = random.randint(0, SCREEN_HEIGHT // 2) # Aparece na parte superior da tela
+
+    # Colisão com o obstáculo (Game Over)
+    if player_rect.colliderect(obstacle_rect):
+        print("Game Over!")
+        print(f"Pontuação Final: {score}")
+        running = False # Encerra o jogo
+
+    # 9.5. Desenhar na Tela
+    screen.fill(BLACK) # Preenche o fundo com preto
+
+    # Desenhar o jogador
+    pygame.draw.rect(screen, BLUE, player_rect)
+
+    # Desenhar a moeda
+    pygame.draw.circle(screen, coin_color, (coin_x + coin_size // 2, coin_y + coin_size // 2), coin_size // 2)
+
+    # Desenhar o obstáculo
+    pygame.draw.rect(screen, RED, obstacle_rect)
+
+    # Desenhar o placar
+    score_text = font.render(f"Pontos: {score}", True, WHITE)
+    screen.blit(score_text, (10, 10))
+
+    # 9.6. Atualizar a Tela
+    pygame.display.flip()
+
+    # 9.7. Controlar o FPS
+    clock.tick(FPS)
+
+# 10. Finalização do Pygame
+pygame.quit()
